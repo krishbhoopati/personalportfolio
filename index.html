@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krish - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-blue: #0044CC;
+            --grid-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-blue);
+            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+        }
+
+        .font-serif-italic {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .bg-grid {
+            background-size: var(--grid-w, 60px) var(--grid-h, 60px);
+            background-position: 0 0;
+            background-image:
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+        }
+
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes float-medium {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes float-fast {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+        .animate-float-medium { animation: float-medium 5s ease-in-out infinite; }
+        .animate-float-fast { animation: float-fast 4s ease-in-out infinite; }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-700 { animation-delay: 700ms; }
+        .delay-1000 { animation-delay: 1000ms; }
+
+
+        #c {
+            display: block;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: #0a0a0a;
+        }
+
+        #site-content {
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        #site-content.visible {
+            opacity: 1;
+        }
+
+                .pixel-art {
+            image-rendering: pixelated;
+            shape-rendering: crispEdges;
+        }
+
+        @keyframes spin-cw {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spin-cw {
+            animation: spin-cw 4s linear infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 0.8; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-screen w-full relative flex flex-col selection:bg-yellow-400 selection:text-blue-900">
+
+    <canvas id="c"></canvas>
+
+    <script>
+    sessionStorage.removeItem('introSeen');
+    if (true) {
+      // sessionStorage.setItem('introSeen', '1'); // disabled for testing
+      
+var asphaltImg = null;
+var carImg = null;
+var carLoaded = false;
+
+carImg = new Image();
+carImg.onload = function(){ carLoaded = true; console.log("Car loaded: " + carImg.width + "x" + carImg.height); };
+carImg.onerror = function(){ console.error("Failed to load car image"); };
+carImg.src = "/r34_car_sprite.png";
+
+var C = document.getElementById('c');
+var X = C.getContext('2d');
+var W, H, CX, CY, RAD, SC;
+
+function resize(){
+  W = C.width = innerWidth;
+  H = C.height = innerHeight;
+  CX = W/2;
+  CY = H/2;
+  SC = Math.min(W,H)/700;
+  RAD = Math.min(W,H)*0.17;
+  genAsphalt();
+  initMarks();
+}
+
+function genAsphalt(){
+  var ac = document.createElement('canvas');
+  ac.width = W; ac.height = H;
+  var ax = ac.getContext('2d');
+  ax.fillStyle = '#1c1c1c';
+  ax.fillRect(0,0,W,H);
+  for(var i=0;i<4000;i++){
+    var v = Math.floor(Math.random()*18+20);
+    ax.fillStyle = 'rgb('+v+','+v+','+v+')';
+    ax.fillRect(Math.random()*W|0, Math.random()*H|0, 1+(Math.random()*2|0), 1+(Math.random()*2|0));
+  }
+  asphaltImg = ac;
+}
+
+resize();
+window.addEventListener('resize', resize);
+
+var SPEED = 0.035;
+var TWO_LAPS = Math.PI * 4;
+var angle = 0;
+var frame = 0;
+var phase = 'drift';
+var smokeFillAlpha = 0;
+var tireMarks = [];
+var smoke = [];
+var smokeStamp = null;
+function genSmokeStamp(){
+  var size = 256;
+  var sc = document.createElement('canvas');
+  sc.width = sc.height = size;
+  var sx = sc.getContext('2d');
+  var g = sx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  g.addColorStop(0,   'rgba(160,160,160,0.85)');
+  g.addColorStop(0.3, 'rgba(160,160,160,0.5)');
+  g.addColorStop(0.6, 'rgba(160,160,160,0.2)');
+  g.addColorStop(1,   'rgba(160,160,160,0)');
+  sx.fillStyle = g;
+  sx.beginPath();
+  sx.arc(size/2, size/2, size/2, 0, Math.PI*2);
+  sx.fill();
+  smokeStamp = sc;
+}
+genSmokeStamp();
+
+// Car sprite is portrait: ~78 wide x 180 tall (nose at top of image)
+// We scale it relative to screen
+var CAR_W, CAR_H;
+function updateCarSize(){
+  CAR_H = 130 * SC; // length (nose to tail)
+  CAR_W = CAR_H * (78/180); // maintain aspect ratio
+}
+
+function drawCar(x, y, rot){
+  if(!carLoaded) return;
+
+  X.save();
+  X.translate(x, y);
+  // The car image: nose at TOP of image = -Y direction in canvas
+  // rot = the car's heading angle in world space
+  // To align image-top (nose) with the heading direction, we add PI/2
+  X.rotate(rot + Math.PI/2);
+
+  // Shadow
+  X.globalAlpha = 0.45;
+  X.fillStyle = '#000';
+  X.beginPath();
+  X.ellipse(3*SC, 4*SC, CAR_W/2 + 3*SC, CAR_H/2 + 3*SC, 0, 0, Math.PI*2);
+  X.fill();
+  X.globalAlpha = 1;
+
+  // Draw the car
+  X.drawImage(carImg, -CAR_W/2, -CAR_H/2, CAR_W, CAR_H);
+  X.restore();
+}
+
+// Smoke system
+function spawnSmoke(sx, sy, vxB, vyB, heavy){
+  var n = heavy ? 8 : 4;
+  for(var i=0; i<n; i++){
+    var spread = heavy ? 14 : 6;
+    smoke.push({
+      x: sx + (Math.random()-0.5)*spread*SC,
+      y: sy + (Math.random()-0.5)*spread*SC,
+      vx: vxB*0.5 + (Math.random()-0.5)*2.0,
+      vy: vyB*0.5 + (Math.random()-0.5)*2.0,
+      sz: (8 + Math.random()*12)*SC,
+      mx: (40 + Math.random()*70)*SC,
+      gr: 0.25 + Math.random()*0.4,
+      life: 1,
+      dc: 0.0015 + Math.random()*0.003,
+      c: Math.floor(Math.random()*80 + 120),
+      t: Math.random()*0.4
+    });
+  }
+}
+
+// Two separate tracks for left and right rear wheels
+var trackL = {px:0, py:0, has:false};
+var trackR = {px:0, py:0, has:false};
+var marksCanvas = null;
+var marksCtx = null;
+
+function initMarks(){
+  marksCanvas = document.createElement('canvas');
+  marksCanvas.width = W;
+  marksCanvas.height = H;
+  marksCtx = marksCanvas.getContext('2d');
+}
+
+function drawMark(track, nx, ny){
+  if(!marksCtx) return;
+  if(track.has){
+    marksCtx.strokeStyle = 'rgba(0,0,0,0.7)';
+    marksCtx.lineWidth = 4 * SC;
+    marksCtx.lineCap = 'round';
+    marksCtx.lineJoin = 'round';
+    marksCtx.beginPath();
+    marksCtx.moveTo(track.px, track.py);
+    marksCtx.lineTo(nx, ny);
+    marksCtx.stroke();
+  }
+  track.px = nx;
+  track.py = ny;
+  track.has = true;
+}
+
+function loop(){
+  frame++;
+  if(phase === 'done') return;
+
+  if(phase === 'drift'){
+    angle += SPEED;
+    if(angle >= TWO_LAPS) phase = 'smokefill';
+  }
+
+  if(phase === 'smokefill'){
+    angle += SPEED * 0.7;
+    smokeFillAlpha += 0.012;
+    if(smokeFillAlpha >= 1){
+      phase = 'done';
+      C.style.display = 'none';
+      document.dispatchEvent(new CustomEvent('loaderDone'));
+      return;
+    }
+  }
+
+  updateCarSize();
+
+  // Car position on donut circle
+  var cx = CX + Math.cos(angle)*RAD;
+  var cy = CY + Math.sin(angle)*RAD;
+  var drift = 0.48;
+  var cr = angle + Math.PI/2 + drift;
+
+  // Rear tire positions - rear is OPPOSITE the heading direction
+  // cr is the heading angle, so rear = cr + PI direction from center
+  var rearDirX = -Math.cos(cr); // opposite of heading
+  var rearDirY = -Math.sin(cr);
+  var rX = cx + rearDirX * CAR_H * 0.42;
+  var rY = cy + rearDirY * CAR_H * 0.42;
+  // Side offset (perpendicular to heading) for left/right rear wheels
+  var sX = -Math.sin(cr) * CAR_W * 0.48;
+  var sY = Math.cos(cr) * CAR_W * 0.48;
+  // Smoke drift direction (outward from center of donut)
+  var oX = rearDirX * 2.0;
+  var oY = rearDirY * 2.0;
+
+  // Tire marks - two continuous burn lines for each rear wheel
+  drawMark(trackL, rX+sX, rY+sY);
+  drawMark(trackR, rX-sX, rY-sY);
+
+  // Smoke - ramps up over time
+  var prog = angle / TWO_LAPS;
+  var heavy = prog > 0.2 && frame%2===0;
+  spawnSmoke(rX+sX*1.2, rY+sY*1.2, oX, oY, heavy);
+  spawnSmoke(rX-sX*1.2, rY-sY*1.2, oX, oY, heavy);
+
+  if(prog > 0.5 && frame%3===0){
+    spawnSmoke(rX+sX*2, rY+sY*2, oX*3, oY*3, true);
+    spawnSmoke(rX-sX*2, rY-sY*2, oX*3, oY*3, true);
+  }
+
+  if(prog > 0.8 && frame%2===0){
+    for(var i=0;i<3;i++){
+      spawnSmoke(rX+(Math.random()-0.5)*60*SC, rY+(Math.random()-0.5)*60*SC, oX*4, oY*4, true);
+    }
+  }
+
+  // Fill phase - screen-wide smoke
+  if(phase === 'smokefill' && frame%2===0){
+    for(var i=0;i<6;i++){
+      smoke.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+        sz: 50*SC + Math.random()*60*SC,
+        mx: 120*SC + Math.random()*150*SC,
+        gr: 0.7 + Math.random()*0.6,
+        life: 1, dc: 0.002 + Math.random()*0.003,
+        c: Math.floor(Math.random()*50+160), t: 0.15
+      });
+    }
+  }
+
+  // Update smoke particles
+  for(var i=smoke.length-1; i>=0; i--){
+    var p = smoke[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.997; p.vy *= 0.997;
+    p.vx += (Math.random()-0.5)*p.t;
+    p.vy += (Math.random()-0.5)*p.t;
+    p.sz = Math.min(p.sz + p.gr, p.mx);
+    p.life -= p.dc;
+    if(p.life <= 0) smoke.splice(i,1);
+  }
+
+  // === RENDER ===
+  if(asphaltImg){
+    X.drawImage(asphaltImg, 0, 0);
+  } else {
+    X.fillStyle = '#1c1c1c';
+    X.fillRect(0,0,W,H);
+  }
+
+  // Tire burn marks (persistent on separate canvas)
+  if(marksCanvas){
+    X.drawImage(marksCanvas, 0, 0);
+  }
+
+  // Smoke particles
+  for(var i=0; i<smoke.length; i++){
+    var p = smoke[i];
+    if(p.life < 0.01) continue;
+    X.globalAlpha = p.life * 0.55;
+    X.drawImage(smokeStamp, p.x - p.sz, p.y - p.sz, p.sz * 2, p.sz * 2);
+  }
+  X.globalAlpha = 1;
+
+  // Car on top
+  drawCar(cx, cy, cr);
+
+  // Smoke fill overlay
+  if(smokeFillAlpha > 0){
+    X.fillStyle = 'rgba(160,160,160,' + Math.min(1, smokeFillAlpha*0.85) + ')';
+    X.fillRect(0,0,W,H);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        var content = document.getElementById('site-content');
+        if (content) { content.classList.add('visible'); }
+        var canvas = document.getElementById('c');
+        if (canvas) { canvas.style.display = 'none'; }
+      });
+    }
+    </script>
+
+    <div id="site-content">
+
+    <!-- Grid background -->
+    <div class="absolute inset-0 z-0 bg-grid pointer-events-none"></div>
+
+    <!-- Portrait top right -->
+    <img src="my-notion-face-portrait (1).png" alt="Krish portrait" class="absolute top-6 right-6 md:top-8 z-50 w-14 md:w-16 rounded-full object-cover pixel-art spin-cw">
+
+    <!-- Floating pixel flowers -->
+    <div id="flowers" class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+
+        <!-- Smiley - top left -->
+        <div class="absolute top-[15%] left-[10%] w-12 h-12 animate-float-medium delay-100 opacity-90">
+            <img src="smiley.png" class="w-full h-full drop-shadow-lg pixel-art">
+        </div>
+
+        <!-- Flower 2 - top center-left -->
+        <div class="absolute top-[8%] left-[25%] w-6 h-6 animate-float-slow delay-500 opacity-80">
+            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
+                <rect x="4" y="0" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="4" y="8" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="0" y="4" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="8" y="4" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="4" y="4" width="4" height="4" fill="#8B4513"></rect>
+                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
+            </svg>
+        </div>
+
+        <!-- Rocketship - top right -->
+        <div class="absolute top-[20%] right-[15%] w-20 h-20 animate-float-fast delay-300 opacity-85">
+            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
+        </div>
+
+        <!-- Flower 4 - bottom left -->
+        <div class="absolute bottom-[20%] left-[8%] w-7 h-7 animate-float-slow delay-700 opacity-80">
+            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
+                <rect x="4" y="0" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="4" y="8" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="0" y="4" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="8" y="4" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="4" y="4" width="4" height="4" fill="#8B4513"></rect>
+                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
+            </svg>
+        </div>
+
+        <!-- Rocketship - bottom right -->
+        <div class="absolute bottom-[25%] right-[20%] w-12 h-12 animate-float-medium delay-1000 opacity-90">
+            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
+        </div>
+
+        <!-- Rocketship - mid left -->
+        <div class="absolute top-[40%] left-[10%] w-8 h-8 animate-float-slow opacity-60">
+            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
+        </div>
+
+        <!-- Flower 7 - mid right -->
+        <div class="absolute top-[60%] right-[8%] w-5 h-5 animate-float-slow delay-200 opacity-70">
+            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
+                <rect x="4" y="0" width="4" height="4" fill="#FF3333"></rect>
+                <rect x="4" y="8" width="4" height="4" fill="#FF3333"></rect>
+                <rect x="0" y="4" width="4" height="4" fill="#FF3333"></rect>
+                <rect x="8" y="4" width="4" height="4" fill="#FF3333"></rect>
+                <rect x="4" y="4" width="4" height="4" fill="#FFD700"></rect>
+                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
+            </svg>
+        </div>
+
+    </div>
+
+    <!-- Nav -->
+    <nav class="absolute left-0 top-0 z-50 flex flex-col px-6 md:px-12 py-6 gap-4">
+
+        <div class="flex flex-col gap-4 text-sm font-bold tracking-wide">
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">BUILDS</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">ABOUT</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">RESUME</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">BLOG</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">PRESS</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#" class="group relative py-1 w-fit">
+                <span class="relative z-10 group-hover:text-yellow-300 transition-colors duration-300">CONTACT</span>
+                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-300 group-hover:w-full transition-all duration-300"></span>
+            </a>
+        </div>
+
+    </nav>
+
+    <!-- Main hero -->
+    <main id="hero-main" class="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none" style="transform: translateY(-32px)">
+        <div style="pointer-events:auto">
+
+        <div class="relative flex flex-col cursor-default">
+
+            <!-- BUILDER: positioned just above the top of the 'k' letter -->
+            <div class="absolute text-xs md:text-sm font-bold tracking-widest opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]" style="left:0; top: calc(22vw - 15vw - 1.4em);">
+                STRATEGY & GROWTH NERD
+            </div>
+
+            <h1 class="font-serif-italic text-[15vw] md:text-[16vw] leading-none text-white tracking-tighter flex items-end select-none drop-shadow-2xl">
+                <span>kr</span>
+
+                <!-- CN Tower replacing the 'i' -->
+                <div class="relative flex flex-col justify-end items-center mx-[0.5vw] w-[6vw] h-[22vw]">
+                    <img id="cn-tower-img" src="cn-tower-cropped.png" alt="CN Tower" class="w-full h-full pixel-art" style="object-fit:contain; object-position: bottom;">
+                </div>
+                <span>sh</span>
+            </h1>
+
+            <!-- BASED IN TORONTO: right-aligned to right edge of name -->
+            <div class="text-xs md:text-sm font-bold tracking-widest mt-2 opacity-0 animate-[fadeIn_1s_ease-out_1.5s_forwards]" style="align-self:flex-end; display:block;">
+                BORN IN TORONTO, BASED IN WATERLOO
+            </div>
+
+        </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="absolute bottom-0 left-0 w-full p-6 flex justify-between items-end z-30 text-xs font-bold tracking-wider opacity-60">
+        <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 mb-2">
+                <a href="https://www.instagram.com/_krish556/" target="_blank" rel="noopener" class="hover:text-yellow-300 transition-colors">INSTAGRAM</a>
+                <a href="https://www.linkedin.com/in/krish-bhoopati/" target="_blank" rel="noopener" class="hover:text-yellow-300 transition-colors">LINKEDIN</a>
+                <a href="https://x.com/krish_bhoopati" target="_blank" rel="noopener" class="hover:text-yellow-300 transition-colors">TWITTER</a>
+                <a href="https://github.com/krishbhoopati" target="_blank" rel="noopener" class="hover:text-yellow-300 transition-colors">GITHUB</a>
+            </div>
+            <span>krish.bhoopati556@gmail.com</span>
+        </div>
+
+<div class="text-right flex flex-col gap-2">
+            <span>&copy; 2026 KRISH</span>
+            <span>ALL RIGHTS RESERVED</span>
+        </div>
+    </footer>
+
+    <script>
+document.addEventListener('loaderDone', function() {
+        var content = document.getElementById('site-content');
+        if (content) content.classList.add('visible');
+        var canvas = document.getElementById('c');
+        if (canvas) canvas.style.display = 'none';
+    });
+
+                function updateGrid() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const cols = Math.round(w / 60);
+            const rows = Math.round(h / 60);
+            document.documentElement.style.setProperty('--grid-w', `${w / cols}px`);
+            document.documentElement.style.setProperty('--grid-h', `${h / rows}px`);
+        }
+        updateGrid();
+        window.addEventListener('resize', () => { updateGrid(); snapToGrid(); });
+
+        const VERTICAL_OFFSET = -60; // px nudge upward
+
+        function snapToGrid() {
+            const tower = document.getElementById('cn-tower-img');
+            const main = document.getElementById('hero-main');
+            if (!tower || !main) return;
+            const gridH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--grid-h')) || 60;
+            main.style.transform = `translateY(${VERTICAL_OFFSET}px)`;
+            const towerBottom = tower.getBoundingClientRect().bottom;
+            const snapped = Math.round(towerBottom / gridH) * gridH;
+            const adjustment = snapped - towerBottom;
+            main.style.transform = `translateY(${VERTICAL_OFFSET + adjustment}px)`;
+        }
+
+        // Wait for fonts + layout to settle
+        if (document.fonts) {
+            document.fonts.ready.then(() => requestAnimationFrame(snapToGrid));
+        } else {
+            window.addEventListener('load', () => requestAnimationFrame(snapToGrid));
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 50;
+            const y = (window.innerHeight / 2 - e.pageY) / 50;
+
+            const bgFlowers = document.querySelectorAll('#flowers > div');
+            bgFlowers.forEach((f, index) => {
+                const speed = (index + 1) * 0.5;
+                f.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+    </script>
+
+    </div>
+
+</body>
+</html>
