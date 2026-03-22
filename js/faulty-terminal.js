@@ -4,7 +4,7 @@
 (function () {
   // ─── Config ───────────────────────────────────────────────────────────────
   var CFG = {
-    digitSize:           1.7,
+    digitSize:           2.5,
     scale:               1.4,
     timeScale:           0.8,
     scanlineIntensity:   1.5,
