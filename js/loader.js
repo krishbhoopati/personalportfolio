@@ -1,5 +1,5 @@
 sessionStorage.removeItem('introSeen');
-if (true) {
+if (false) {
   // sessionStorage.setItem('introSeen', '1'); // disabled for testing
 
 var asphaltImg = null;

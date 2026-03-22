@@ -21,66 +21,6 @@
     <!-- Portrait top right -->
     <img src="my-notion-face-portrait (1).png" alt="Krish portrait" class="absolute top-6 right-6 md:top-8 z-50 w-14 md:w-16 rounded-full object-cover pixel-art spin-cw">
 
-    <!-- Floating pixel flowers -->
-    <div id="flowers" class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-
-        <!-- Smiley - top left -->
-        <div class="absolute top-[15%] left-[10%] w-12 h-12 animate-float-medium delay-100 opacity-90">
-            <img src="smiley.png" class="w-full h-full drop-shadow-lg pixel-art">
-        </div>
-
-        <!-- Flower 2 - top center-left -->
-        <div class="absolute top-[8%] left-[25%] w-6 h-6 animate-float-slow delay-500 opacity-80">
-            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
-                <rect x="4" y="0" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="4" y="8" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="0" y="4" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="8" y="4" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="4" y="4" width="4" height="4" fill="#8B4513"></rect>
-                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
-            </svg>
-        </div>
-
-        <!-- Rocketship - top right -->
-        <div class="absolute top-[20%] right-[15%] w-20 h-20 animate-float-fast delay-300 opacity-85">
-            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
-        </div>
-
-        <!-- Flower 4 - bottom left -->
-        <div class="absolute bottom-[20%] left-[8%] w-7 h-7 animate-float-slow delay-700 opacity-80">
-            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
-                <rect x="4" y="0" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="4" y="8" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="0" y="4" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="8" y="4" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="4" y="4" width="4" height="4" fill="#8B4513"></rect>
-                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
-            </svg>
-        </div>
-
-        <!-- Rocketship - bottom right -->
-        <div class="absolute bottom-[25%] right-[20%] w-12 h-12 animate-float-medium delay-1000 opacity-90">
-            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
-        </div>
-
-        <!-- Rocketship - mid left -->
-        <div class="absolute top-[40%] left-[10%] w-8 h-8 animate-float-slow opacity-60">
-            <img src="rocketship.png" class="w-full h-full drop-shadow-lg pixel-art">
-        </div>
-
-        <!-- Flower 7 - mid right -->
-        <div class="absolute top-[60%] right-[8%] w-5 h-5 animate-float-slow delay-200 opacity-70">
-            <svg viewBox="0 0 12 16" class="w-full h-full drop-shadow-lg pixel-art">
-                <rect x="4" y="0" width="4" height="4" fill="#FF3333"></rect>
-                <rect x="4" y="8" width="4" height="4" fill="#FF3333"></rect>
-                <rect x="0" y="4" width="4" height="4" fill="#FF3333"></rect>
-                <rect x="8" y="4" width="4" height="4" fill="#FF3333"></rect>
-                <rect x="4" y="4" width="4" height="4" fill="#FFD700"></rect>
-                <rect x="4" y="12" width="4" height="4" fill="#228B22"></rect>
-            </svg>
-        </div>
-
-    </div>
 
     <!-- Nav -->
     <nav class="absolute left-0 top-0 z-50 flex flex-col px-6 md:px-12 py-6 gap-4">
@@ -145,6 +85,11 @@
 
     </main>
 
+    <!-- Feeling Lucky button -->
+    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 z-30">
+        <button id="lucky-btn" class="text-sm font-bold tracking-wider bg-yellow-300 text-blue-900 px-8 py-3 hover:bg-yellow-400 transition-colors duration-300">I'M FEELING LUCKY</button>
+    </div>
+
     <!-- Footer -->
     <footer class="absolute bottom-0 left-0 w-full p-6 flex justify-between items-end z-30 text-xs font-bold tracking-wider opacity-60">
         <div class="flex flex-col gap-2">
@@ -166,5 +111,8 @@
     </div>
 
     <script src="js/main.js"></script>
+    <script src="https://unpkg.com/popmotion@11/dist/popmotion.global.min.js"></script>
+    <script src="https://unpkg.com/@use-gesture/vanilla/dist/use-gesture_vanilla.umd.js"></script>
+    <script src="js/lucky-btn.js"></script>
 </body>
 </html>
