@@ -4,7 +4,7 @@
 }
 
 body {
-    background-color: var(--bg-blue);
+    background-color: #000000;
     color: #ffffff;
     font-family: 'Space Mono', monospace;
     overflow: hidden;
@@ -16,15 +16,6 @@ body {
     font-weight: 400;
 }
 
-.bg-grid {
-    background-size: var(--grid-w, 60px) var(--grid-h, 60px);
-    background-position: 0 0;
-    background-image:
-        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-    mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
-    -webkit-mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
-}
 
 @keyframes float-slow {
     0%, 100% { transform: translateY(0); }

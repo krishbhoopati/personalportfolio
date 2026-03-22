@@ -13,10 +13,10 @@
     <canvas id="c"></canvas>
     <script src="js/loader.js"></script>
 
-    <div id="site-content">
+    <!-- Dark overlay on top of terminal background -->
+    <div class="fixed inset-0 z-10 pointer-events-none" style="background: rgba(0,0,0,0.65);"></div>
 
-    <!-- Grid background -->
-    <div class="absolute inset-0 z-0 bg-grid pointer-events-none"></div>
+    <div id="site-content">
 
     <!-- Portrait top right -->
     <img src="my-notion-face-portrait (1).png" alt="Krish portrait" class="absolute top-6 right-6 md:top-8 z-50 w-14 md:w-16 rounded-full object-cover pixel-art spin-cw">
@@ -85,12 +85,7 @@
 
     </main>
 
-    <!-- Feeling Lucky button -->
-    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 z-30">
-        <button id="lucky-btn" class="text-sm font-bold tracking-wider bg-yellow-300 text-blue-900 px-8 py-3 hover:bg-yellow-400 transition-colors duration-300">I'M FEELING LUCKY</button>
-    </div>
-
-    <!-- Footer -->
+<!-- Footer -->
     <footer class="absolute bottom-0 left-0 w-full p-6 flex justify-between items-end z-30 text-xs font-bold tracking-wider opacity-60">
         <div class="flex flex-col gap-2">
             <div class="flex flex-col gap-2 mb-2">
@@ -114,5 +109,6 @@
     <script src="https://unpkg.com/popmotion@11/dist/popmotion.global.min.js"></script>
     <script src="https://unpkg.com/@use-gesture/vanilla/dist/use-gesture_vanilla.umd.js"></script>
     <script src="js/lucky-btn.js"></script>
+    <script src="js/faulty-terminal.js"></script>
 </body>
 </html>
